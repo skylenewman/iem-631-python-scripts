@@ -34,9 +34,44 @@ def get_subworktask(r):
         'date_due_max':r[21],
         'date_ready':r[27],
         'date_due_duration':r[44],
-        'duration':r[45]
+        'duration':r[45],
+        'performer':get_user_dict(r[37]),
+        'owner':get_user_dict(r[36]),
+        'manager':get_user_dict(r[39])
     }
 
+user_group_dict = {}
+with open("/Users/kyle/Code/IEM-BIG-DATA/IEM-USERS-GROUPS.csv") as infile:
+    datareader = csv.reader(infile)
+    for r in datareader:
+
+        user_group_dict[r[0]] = {
+            'type_cd':r[1],
+            'group_cd':r[2],
+            'deleted_cd':r[3],
+            'type':'user' if r[1] == '0' else 'group',
+            'status':'active' if r[3] == '0' else 'inactive'
+        }
+def get_user_dict(i):
+    if i is not None and i != '' and i in user_group_dict:
+        return {
+            'id':i,
+            'type_cd':user_group_dict[i]['type_cd'],
+            'group_cd':user_group_dict[i]['group_cd'],
+            'deleted_cd':user_group_dict[i]['deleted_cd'],
+            'type':user_group_dict[i]['type'],
+            'status':user_group_dict[i]['status'],
+        }
+    elif i == '1000':
+        return {
+            'type_cd':'2',
+            'group_cd':'1',
+            'deleted_cd':'1',
+            'type':'system automation',
+            'status':'active',
+        }
+    else:
+        return i
 for file in os.listdir("/Users/kyle/Code/IEM-BIG-DATA/w/"):
     if file.endswith("csv"):
         jsonfile = file.replace("csv","json")
@@ -58,8 +93,8 @@ for file in os.listdir("/Users/kyle/Code/IEM-BIG-DATA/w/"):
                 workflow_dictionary['date_due_max'] = r[19]
                 workflow_dictionary['date_initiated'] = r[22]
                 workflow_dictionary['date_completed'] = r[24]
-                workflow_dictionary['owner_id'] = r[35]
-                workflow_dictionary['manager_id'] = r[38]
+                workflow_dictionary['owner'] = get_user_dict(r[35])
+                workflow_dictionary['manager'] = get_user_dict(r[38])
                 workflow_dictionary['date_due_duration'] = r[40]
                 workflow_dictionary['duration'] = r[41]
                 workflow_dictionary['title'] = r[8]
@@ -107,6 +142,6 @@ for file in os.listdir("/Users/kyle/Code/IEM-BIG-DATA/w/"):
         csv_file.close()
 
 
-        json_file = open("/Users/kyle/Code/IEM-BIG-DATA/w/"+jsonfile,'w')
+        json_file = open("/Users/kyle/Code/IEM-BIG-DATA/ww/"+jsonfile,'w')
         json.dump(workflow_dictionary,json_file)
         json_file.close()
